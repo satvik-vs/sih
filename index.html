@@ -6,7 +6,7 @@
     <style>
         /* Styling for the background image */
         body {
-            background-image: url('https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.freecreatives.com%2Fbackgrounds%2Fwebsite-background.html&psig=AOvVaw2appETBOzxwoayUPjdb0gl&ust=1695375153257000&source=images&cd=vfe&opi=89978449&ved=0CBAQjRxqFwoTCKCB_d6yu4EDFQAAAAAdAAAAABAJ'); /* Replace with your image URL */
+            background-image: url('https://images.freecreatives.com/wp-content/uploads/2016/04/Free-Website-BAckgrounds1.jpg'); /* Replace with your image URL */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -118,6 +118,7 @@
                     const headers = [
                         'City', 'Country Code', 'Division', 'Latitude', 'Longitude',
                         'Place Name', 'Postal Code', 'State', 'Updated At', 'AQI',
+                        'CO', 'NO2', 'OZONE', 'PM10', 'PM2.5', 'SO2',
                         'Pollutant', 'Concentration', 'Category'
                     ];
 
@@ -139,8 +140,10 @@
                         const rowData = [
                             station.city, station.countryCode, station.division, station.lat,
                             station.lng, station.placeName, station.postalCode, station.state,
-                            station.updatedAt, station.AQI, station.aqiInfo.pollutant,
-                            station.aqiInfo.concentration, station.aqiInfo.category
+                            station.updatedAt, station.AQI, station.CO, station.NO2,
+                            station.OZONE, station.PM10, station.PM25, station.SO2,
+                            station.aqiInfo.pollutant, station.aqiInfo.concentration,
+                            station.aqiInfo.category
                         ];
 
                         rowData.forEach(cellData => {
