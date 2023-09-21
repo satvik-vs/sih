@@ -1,7 +1,7 @@
 // Function to fetch AQI data from the API
 function fetchAQIData() {
-    const apiUrl = ' https://api.ambeedata.com/latest/by-lat-lng?lat=12&lng=77'; // Replace with the actual API endpoint
-    const apiKey = '2c30af85321ece6e47fc671496cd06829795f8cba7ca2886a530ac38bbc75d2a'; // Replace with your actual API key
+    const apiUrl = 'https://api.example.com/aqi'; // Replace with the actual API endpoint
+    const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
 
     // Include the API key as a query parameter in the URL
     const urlWithApiKey = `${apiUrl}?apiKey=${apiKey}`;
@@ -15,7 +15,7 @@ function fetchAQIData() {
             return response.json();
         })
         .then(data => {
-            // Assuming the API response contains AQI parameters like PM2.5, PM10, NO2, CO, and O2
+            // Assuming the API response contains AQI parameters and AQI information
             const pm25 = data.stations[0].PM25;
             const pm10 = data.stations[0].PM10;
             const no2 = data.stations[0].NO2;
