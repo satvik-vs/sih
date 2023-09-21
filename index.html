@@ -8,7 +8,7 @@
     <style>
         /* Styling for the background image */
         body {
-            background-image: url('https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcm0yMjItbWluZC0xNl8xLmpwZw.jpg'); /* Replace with your image URL */
+            background-image: url('https://example.com/your-background-image.jpg'); /* Replace with your image URL */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -37,6 +37,9 @@
 
         /* Styling for the chart container */
         .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
         }
     </style>
@@ -51,7 +54,7 @@
             <!-- The table will be rendered here -->
         </div>
         <div class="chart-container" id="chart-container">
-            <!-- The charts will be rendered here -->
+            <!-- The chart will be rendered here -->
         </div>
         <div style="text-align: center;">
             <label for="postal-code">Enter Postal Code:</label>
@@ -91,11 +94,7 @@
                     const tableContainer = document.getElementById('table-container');
                     const chartContainer = document.getElementById('chart-container');
                     tableContainer.innerHTML = ''; // Clear previous data
-                    chartContainer.innerHTML = ''; // Clear previous charts
-
-                    // Create the table element
-                    const table = document.createElement('table');
-                    table.classList.add('tftable');
+                    chartContainer.innerHTML = ''; // Clear previous chart
 
                     // Create the AQI box
                     const aqiBox = document.createElement('div');
@@ -103,40 +102,43 @@
                     aqiBox.textContent = `AQI: ${data.stations[0].AQI}`;
                     chartContainer.appendChild(aqiBox);
 
-                    // Create the chart for pollutants
+                    // Create the chart for all pollutants
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 500;
+                    canvas.height = 300;
+                    chartContainer.appendChild(canvas);
+
+                    const ctx = canvas.getContext('2d');
                     const pollutants = ['CO', 'NO2', 'OZONE', 'PM10', 'PM25', 'SO2'];
-                    pollutants.forEach(pollutant => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 300;
-                        canvas.height = 200;
-                        chartContainer.appendChild(canvas);
+                    const pollutantData = pollutants.map(pollutant => data.stations[0][pollutant]);
+                    const labels = pollutants.map(pollutant => pollutant);
 
-                        const ctx = canvas.getContext('2d');
-                        const pollutantData = {
-                            labels: ['Category', 'Concentration'],
-                            datasets: [
-                                {
-                                    label: pollutant,
-                                    data: [data.stations[0].aqiInfo.category, data.stations[0][pollutant]],
-                                    backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-                                    borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-                                    borderWidth: 1,
-                                },
-                            ],
-                        };
-
-                        new Chart(ctx, {
-                            type: 'bar',
+                    const chartData = {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Pollutants',
                             data: pollutantData,
-                            options: {
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                    },
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        }]
+                    };
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: chartData,
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
                                 },
                             },
-                        });
+                        },
                     });
+
+                    // Create the table
+                    const table = document.createElement('table');
+                    table.classList.add('tftable');
 
                     // Create the table header row
                     const thead = document.createElement('thead');
@@ -161,7 +163,6 @@
 
                     // Loop through the API stations data and create table rows
                     data.stations.forEach(station => {
-                        const row = document.createElement('tr');
                         const rowData = [
                             'City', station.city,
                             'Country Code', station.countryCode,
@@ -174,13 +175,20 @@
                             'Updated At', station.updatedAt,
                         ];
 
-                        rowData.forEach(cellData => {
-                            const cell = document.createElement('td');
-                            cell.textContent = cellData;
-                            row.appendChild(cell);
+                        rowData.forEach((cellData, index) => {
+                            if (index % 2 === 0) {
+                                const row = document.createElement('tr');
+                                const parameterCell = document.createElement('td');
+                                parameterCell.textContent = cellData;
+                                row.appendChild(parameterCell);
+                                tbody.appendChild(row);
+                            } else {
+                                const valueCell = document.createElement('td');
+                                valueCell.textContent = cellData;
+                                const currentRow = tbody.lastChild;
+                                currentRow.appendChild(valueCell);
+                            }
                         });
-
-                        tbody.appendChild(row);
                     });
 
                     table.appendChild(tbody);
