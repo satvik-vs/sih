@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         /* Styling for the background image */
         body {
@@ -23,24 +21,8 @@
             border-radius: 10px;
             padding: 20px;
             margin: 20px;
-        }
-
-        /* Styling for the AQI box */
-        .aqi-box {
-            background-color: green;
-            color: white;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        /* Styling for the chart container */
-        .chart-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            max-width: 500px; /* Adjust the width as needed */
+            margin: 0 auto; /* Center the table horizontally */
         }
     </style>
     <title>AQI and WQI Monitor</title>
@@ -52,9 +34,6 @@
     <main>
         <div class="table-container" id="table-container">
             <!-- The table will be rendered here -->
-        </div>
-        <div class="chart-container" id="chart-container">
-            <!-- The chart will be rendered here -->
         </div>
         <div style="text-align: center;">
             <label for="postal-code">Enter Postal Code:</label>
@@ -90,73 +69,13 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container and chart container
+                    // Get a reference to the table container
                     const tableContainer = document.getElementById('table-container');
-                    const chartContainer = document.getElementById('chart-container');
                     tableContainer.innerHTML = ''; // Clear previous data
-                    chartContainer.innerHTML = ''; // Clear previous chart
 
-                    // Create the AQI box
-                    const aqiBox = document.createElement('div');
-                    aqiBox.classList.add('aqi-box');
-                    aqiBox.textContent = `AQI: ${data.stations[0].AQI}`;
-                    chartContainer.appendChild(aqiBox);
-
-                    // Create the chart for all pollutants
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 500;
-                    canvas.height = 300;
-                    chartContainer.appendChild(canvas);
-
-                    const ctx = canvas.getContext('2d');
-                    const pollutants = ['CO', 'NO2', 'OZONE', 'PM10', 'PM25', 'SO2'];
-                    const pollutantData = pollutants.map(pollutant => data.stations[0][pollutant]);
-                    const labels = pollutants.map(pollutant => pollutant);
-
-                    const chartData = {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Pollutants',
-                            data: pollutantData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: chartData,
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                },
-                            },
-                        },
-                    });
-
-                    // Create the table
+                    // Create the table element
                     const table = document.createElement('table');
                     table.classList.add('tftable');
-
-                    // Create the table header row
-                    const thead = document.createElement('thead');
-                    const headerRow = document.createElement('tr');
-
-                    // Define the table headers
-                    const headers = [
-                        'Parameter', 'Value'
-                    ];
-
-                    headers.forEach(headerText => {
-                        const th = document.createElement('th');
-                        th.textContent = headerText;
-                        headerRow.appendChild(th);
-                    });
-
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
 
                     // Create the table body
                     const tbody = document.createElement('tbody');
@@ -173,6 +92,13 @@
                             'Postal Code', station.postalCode,
                             'State', station.state,
                             'Updated At', station.updatedAt,
+                            'AQI', station.AQI,
+                            'PM2.5', station['PM25'],
+                            'CO', station.CO,
+                            'OZONE', station.OZONE,
+                            'NO2', station.NO2,
+                            'PM10', station.PM10,
+                            'SO2', station.SO2
                         ];
 
                         rowData.forEach((cellData, index) => {
