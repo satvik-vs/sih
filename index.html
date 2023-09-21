@@ -84,6 +84,15 @@
             max-width: 500px; /* Adjust the width as needed */
             margin: 0 auto; /* Center the chart horizontally */
         }
+
+        /* Styling for the AQI status box */
+        .aqi-status {
+            font-weight: bold;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
     <title>AQI and WQI Monitor</title>
 </head>
@@ -106,9 +115,23 @@
             <div class="chart-container" id="chart-container">
                 <!-- The chart will be rendered here -->
             </div>
+            <div class="aqi-status" id="aqi-status">
+                <!-- AQI status will be displayed here -->
+            </div>
         </div>
     </main>
     <script>
+        // Function to convert decimal coordinates to DMS format
+        function convertToDMS(coord, isLatitude) {
+            const absoluteCoord = Math.abs(coord);
+            const degrees = Math.floor(absoluteCoord);
+            const minutesNotTruncated = (absoluteCoord - degrees) * 60;
+            const minutes = Math.floor(minutesNotTruncated);
+            const seconds = ((minutesNotTruncated - minutes) * 60).toFixed(2);
+
+            return `${degrees}° ${minutes}' ${seconds}" ${isLatitude ? (coord >= 0 ? 'N' : 'S') : (coord >= 0 ? 'E' : 'W')}`;
+        }
+
         // Function to fetch data and populate the table based on the entered postal code and country code
         function fetchData() {
             const postalCode = document.getElementById('postal-code').value;
@@ -139,11 +162,13 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container and chart container
+                    // Get a reference to the table container, chart container, and AQI status element
                     const tableContainer = document.getElementById('table-container');
                     const chartContainer = document.getElementById('chart-container');
+                    const aqiStatus = document.getElementById('aqi-status');
                     tableContainer.style.display = 'none'; // Hide table by default
                     chartContainer.style.display = 'none'; // Hide chart by default
+                    aqiStatus.innerHTML = ''; // Clear previous AQI status
                     tableContainer.innerHTML = ''; // Clear previous data
                     chartContainer.innerHTML = ''; // Clear previous chart
 
@@ -154,14 +179,38 @@
                     // Create the table body
                     const tbody = document.createElement('tbody');
 
+                    // Define AQI categories and colors
+                    const aqiCategories = {
+                        Good: { color: 'green' },
+                        Moderate: { color: 'brown' },
+                        Abnormal: { color: 'red' },
+                    };
+
+                    // Calculate AQI category based on AQI value
+                    const aqiValue = data.stations[0].AQI;
+                    let aqiCategory;
+                    if (aqiValue <= 50) {
+                        aqiCategory = 'Good';
+                    } else if (aqiValue <= 100) {
+                        aqiCategory = 'Moderate';
+                    } else {
+                        aqiCategory = 'Abnormal';
+                    }
+
+                    // Display AQI status with color
+                    const aqiStatusText = document.createElement('span');
+                    aqiStatusText.textContent = `AQI Category: ${aqiCategory}`;
+                    aqiStatusText.style.color = aqiCategories[aqiCategory].color;
+                    aqiStatus.appendChild(aqiStatusText);
+
                     // Loop through the API stations data and create table rows
                     data.stations.forEach(station => {
                         const rowData = [
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', station.lat,
-                            'Longitude', station.lng,
+                            'Latitude (DMS)', convertToDMS(station.lat, true),
+                            'Longitude (DMS)', convertToDMS(station.lng, false),
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -173,8 +222,6 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', station.aqiInfo.category || '-',
-                            'AQI Status', getStatusHTML(station.aqiInfo.category)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -186,7 +233,7 @@
                                 tbody.appendChild(row);
                             } else {
                                 const valueCell = document.createElement('td');
-                                valueCell.innerHTML = cellData;
+                                valueCell.textContent = cellData;
                                 const currentRow = tbody.lastChild;
                                 currentRow.appendChild(valueCell);
                             }
@@ -261,42 +308,6 @@
 
             // Display the chart container
             chartContainer.style.display = 'block';
-        }
-
-        function getStatusHTML(category) {
-            let status = '';
-            let color = '';
-
-            switch (category) {
-                case 'Good':
-                    status = 'Normal';
-                    color = 'green';
-                    break;
-                case 'Satisfactory':
-                    status = 'Moderate';
-                    color = 'brown';
-                    break;
-                default:
-                    status = 'Abnormal';
-                    color = 'red';
-                    break;
-            }
-
-            let solutions = '';
-            if (category !== 'Good' && category !== 'Satisfactory') {
-                solutions = `
-                    <h3>Solutions for Abnormal AQI:</h3>
-                    <ul>
-                        <li>Avoid outdoor activities.</li>
-                        <li>Use masks to reduce exposure to pollutants.</li>
-                        <li>Keep windows and doors closed to prevent indoor pollution.</li>
-                        <li>Use air purifiers indoors.</li>
-                        <li>Follow local advisories and alerts.</li>
-                    </ul>
-                `;
-            }
-
-            return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
     </script>
 </body>
