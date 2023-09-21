@@ -8,7 +8,7 @@
     <style>
         /* Styling for the background image */
         body {
-            background-image: url('https://example.com/your-background-image.jpg'); /* Replace with your image URL */
+            background-image: url('https://i.pinimg.com/564x/37/28/29/3728298a1da98500e54fe09764b451be.jpg'); /* Replace with your image URL */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -84,13 +84,6 @@
             max-width: 500px; /* Adjust the width as needed */
             margin: 0 auto; /* Center the chart horizontally */
         }
-
-        /* Styling for AQI status */
-        #aqi-status {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
     </style>
     <title>AQI and WQI Monitor</title>
 </head>
@@ -113,7 +106,6 @@
             <div class="chart-container" id="chart-container">
                 <!-- The chart will be rendered here -->
             </div>
-            <div id="aqi-status"></div>
         </div>
     </main>
     <script>
@@ -147,15 +139,13 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container, chart container, and AQI status element
+                    // Get a reference to the table container and chart container
                     const tableContainer = document.getElementById('table-container');
                     const chartContainer = document.getElementById('chart-container');
-                    const aqiStatus = document.getElementById('aqi-status');
                     tableContainer.style.display = 'none'; // Hide table by default
                     chartContainer.style.display = 'none'; // Hide chart by default
                     tableContainer.innerHTML = ''; // Clear previous data
                     chartContainer.innerHTML = ''; // Clear previous chart
-                    aqiStatus.innerHTML = ''; // Clear previous AQI status
 
                     // Create the table element
                     const table = document.createElement('table');
@@ -170,8 +160,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', station.lat.toFixed(6),
-                            'Longitude', station.lng.toFixed(6),
+                            'Latitude', station.lat,
+                            'Longitude', station.lng,
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -183,7 +173,8 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'Category', station.aqiInfo.category
+                            'AQI Category', station.aqiInfo.category || '-',
+                            'AQI Status', getStatusHTML(station.aqiInfo.category)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -195,7 +186,7 @@
                                 tbody.appendChild(row);
                             } else {
                                 const valueCell = document.createElement('td');
-                                valueCell.textContent = cellData;
+                                valueCell.innerHTML = cellData;
                                 const currentRow = tbody.lastChild;
                                 currentRow.appendChild(valueCell);
                             }
@@ -210,27 +201,6 @@
 
                     // Create a chart with data and display it
                     createChart(data.stations[0]);
-
-                    // Check AQI status and display appropriate message and color
-                    if (data.stations[0].AQI <= 50) {
-                        aqiStatus.textContent = 'AQI Status: Normal';
-                        aqiStatus.style.color = 'green';
-                    } else if (data.stations[0].AQI <= 100) {
-                        aqiStatus.textContent = 'AQI Status: Moderate';
-                        aqiStatus.style.color = 'brown';
-                    } else {
-                        aqiStatus.textContent = 'AQI Status: Abnormal (Harmful)';
-                        aqiStatus.style.color = 'red';
-                        // Provide solutions for abnormal AQI
-                        const abnormalReasons = [
-                            'Excessive industrial emissions',
-                            'High traffic pollution',
-                            'Biomass burning',
-                            'Poor ventilation'
-                        ];
-                        const solutions = abnormalReasons.map(reason => `- ${reason}`).join('<br>');
-                        aqiStatus.innerHTML += `<br>Solutions:<br>${solutions}`;
-                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -291,6 +261,42 @@
 
             // Display the chart container
             chartContainer.style.display = 'block';
+        }
+
+        function getStatusHTML(category) {
+            let status = '';
+            let color = '';
+
+            switch (category) {
+                case 'Good':
+                    status = 'Normal';
+                    color = 'green';
+                    break;
+                case 'Satisfactory':
+                    status = 'Moderate';
+                    color = 'brown';
+                    break;
+                default:
+                    status = 'Abnormal';
+                    color = 'red';
+                    break;
+            }
+
+            let solutions = '';
+            if (category !== 'Good' && category !== 'Satisfactory') {
+                solutions = `
+                    <h3>Solutions for Abnormal AQI:</h3>
+                    <ul>
+                        <li>Avoid outdoor activities.</li>
+                        <li>Use masks to reduce exposure to pollutants.</li>
+                        <li>Keep windows and doors closed to prevent indoor pollution.</li>
+                        <li>Use air purifiers indoors.</li>
+                        <li>Follow local advisories and alerts.</li>
+                    </ul>
+                `;
+            }
+
+            return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
     </script>
 </body>
