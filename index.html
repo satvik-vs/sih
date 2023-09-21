@@ -160,8 +160,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', getFormattedCoordinate(station.lat),
-                            'Longitude', getFormattedCoordinate(station.lng),
+                            'Latitude', station.lat,
+                            'Longitude', station.lng,
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -174,7 +174,7 @@
                             'PM10', station.PM10,
                             'SO2', station.SO2,
                             'AQI Category', station.aqiInfo.category || '-',
-                            'AQI Status', getStatusHTML(station.aqiInfo.category)
+                            'AQI Status', getStatusHTML(station)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -263,28 +263,9 @@
             chartContainer.style.display = 'block';
         }
 
-        function getStatusHTML(category) {
-            let status = '';
-            let color = '';
-
-            switch (category) {
-                case 'Good':
-                    status = 'Normal';
-                    color = 'green';
-                    break;
-                case 'Satisfactory':
-                    status = 'Moderate';
-                    color = 'brown';
-                    break;
-                default:
-                    status = 'Abnormal';
-                    color = 'red';
-                    break;
-            }
-
-            let solutions = '';
-            if (category !== 'Good' && category !== 'Satisfactory') {
-                solutions = `
+        function getStatusHTML(station) {
+            if (station.aqiInfo.category === 'Abnormal') {
+                const solutions = `
                     <h3>Solutions for Abnormal AQI:</h3>
                     <ul>
                         <li>Avoid outdoor activities.</li>
@@ -294,16 +275,10 @@
                         <li>Follow local advisories and alerts.</li>
                     </ul>
                 `;
+                return `<span style="color: red; font-weight: bold;">Abnormal</span><br>${solutions}`;
+            } else {
+                return `<span style="color: green; font-weight: bold;">Normal</span>`;
             }
-
-            return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
-        }
-
-        function getFormattedCoordinate(coordinate) {
-            const degrees = Math.floor(coordinate);
-            const minutes = Math.floor((coordinate - degrees) * 60);
-            const seconds = ((coordinate - degrees - minutes / 60) * 3600).toFixed(2);
-            return `${degrees}° ${minutes}' ${seconds}"`;
         }
     </script>
 </body>
