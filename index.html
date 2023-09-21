@@ -88,22 +88,22 @@
                     // Loop through the API stations data and create table rows
                     data.stations.forEach(station => {
                         const rowData = [
-                            'City', station.city,
-                            'Country Code', station.countryCode,
-                            'Division', station.division,
-                            'Latitude', station.lat,
-                            'Longitude', station.lng,
-                            'Place Name', station.placeName,
-                            'Postal Code', station.postalCode,
-                            'State', station.state,
-                            'Updated At', station.updatedAt,
-                            'AQI', station.AQI,
-                            'PM2.5', station['PM25'],
-                            'CO', station.CO,
-                            'OZONE', station.OZONE,
-                            'NO2', station.NO2,
-                            'PM10', station.PM10,
-                            'SO2', station.SO2
+                            'City : ', station.city,
+                            'Country Code : ', station.countryCode,
+                            'Division : ', station.division,
+                            'Latitude : ', station.lat,
+                            'Longitude : ', station.lng,
+                            'Place Name : ', station.placeName,
+                            'Postal Code : ', station.postalCode,
+                            'State : ', station.state,
+                            'Updated At : ', station.updatedAt,
+                            'AQI [ Air Quality Index ]: ', station.AQI,
+                            'PM2.5 [ Particular Matter 2.5 ] : ', station['PM25'],
+                            'CO [ Carbon Mono Oxide ]  : ', station.CO,
+                            'O3[ OZONE ]  : ', station.OZONE,
+                            'NO2 [ Nitrogen Di-Oxide ]: ', station.NO2,
+                            'PM10 [ Paricukar Mattter ]: ', station.PM10,
+                            'SO2 [ Sulphur Di-Oxide ] : ', station.SO2
                         ];
 
                         rowData.forEach((cellData, index) => {
