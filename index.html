@@ -60,33 +60,19 @@
         }
 
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #333; /* Thicker border */
         }
 
-        th, td {
-            border: 2px solid black; /* Thicker border */
+        table th, table td {
+            border: 2px solid #333; /* Thicker border */
             padding: 10px;
             text-align: left;
         }
 
-        th {
+        table th {
             background-color: #f2f2f2;
-        }
-
-        /* Styling for the AQI Category */
-        .abnormal {
-            color: red;
-            font-weight: bold;
-        }
-
-        /* Styling for the Abnormality Reason Section */
-        .abnormal-reason {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: rgba(255, 0, 0, 0.2); /* Red background */
-            border-radius: 10px;
-            display: none; /* Hidden by default */
         }
 
         /* Styling for the chart container */
@@ -97,6 +83,29 @@
             padding: 20px;
             max-width: 500px; /* Adjust the width as needed */
             margin: 0 auto; /* Center the chart horizontally */
+        }
+
+        /* Styling for AQI category */
+        .aqi-category {
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .abnormal {
+            background-color: red;
+        }
+
+        /* Styling for the abnormality reason section */
+        .abnormal-reason {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 0, 0, 0.2); /* Red background */
+            border-radius: 10px;
+            display: none; /* Hidden by default */
         }
     </style>
     <title>AQI and WQI Monitor</title>
@@ -121,7 +130,7 @@
                 <!-- The chart will be rendered here -->
             </div>
             <div class="abnormal-reason" id="abnormal-reason">
-                <!-- Abnormality reasons will be displayed here -->
+                <!-- Abnormal AQI reason will be displayed here -->
             </div>
         </div>
     </main>
@@ -130,91 +139,102 @@
         function fetchData() {
             const postalCode = document.getElementById('postal-code').value;
             const countryCode = document.getElementById('country-code').value;
-            const apiKey = '2c30af85321ece6e47fc671496cd06829795f8cba7ca2886a530ac38bbc75d2a'; // Replace with your actual API key
             const apiUrl = `https://api.ambeedata.com/latest/by-postal-code?postalCode=${postalCode}&countryCode=${countryCode}`;
 
-            fetch(apiUrl, {
-                headers: {
-                    'x-api-key': apiKey,
-                    'Content-type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tableContainer = document.getElementById('table-container');
-                const chartContainer = document.getElementById('chart-container');
-                const abnormalReason = document.getElementById('abnormal-reason');
-                const table = document.createElement('table');
-                table.innerHTML = `
-                    <tr>
-                        <th>City</th>
-                        <td>${data.stations[0].city}</td>
-                    </tr>
-                    <tr>
-                        <th>Country Code</th>
-                        <td>${data.stations[0].countryCode}</td>
-                    </tr>
-                    <tr>
-                        <th>Division</th>
-                        <td>${data.stations[0].division}</td>
-                    </tr>
-                    <tr>
-                        <th>Latitude</th>
-                        <td>${data.stations[0].lat}</td>
-                    </tr>
-                    <tr>
-                        <th>Longitude</th>
-                        <td>${data.stations[0].lng}</td>
-                    </tr>
-                    <tr>
-                        <th>Place Name</th>
-                        <td>${data.stations[0].placeName}</td>
-                    </tr>
-                    <tr>
-                        <th>Postal Code</th>
-                        <td>${data.stations[0].postalCode}</td>
-                    </tr>
-                    <tr>
-                        <th>State</th>
-                        <td>${data.stations[0].state}</td>
-                    </tr>
-                    <tr>
-                        <th>Updated At</th>
-                        <td>${data.stations[0].updatedAt}</td>
-                    </tr>
-                    <tr>
-                        <th>AQI</th>
-                        <td>${data.stations[0].AQI}</td>
-                    </tr>
-                    <tr>
-                        <th>Pollutant</th>
-                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.pollutant : '-'}</td>
-                    </tr>
-                    <tr>
-                        <th>Concentration</th>
-                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.concentration : '-'}</td>
-                    </tr>
-                    <tr>
-                        <th>Category</th>
-                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.category : '-'}</td>
-                    </tr>
-                    <tr>
-                        <th>AQI Category</th>
-                        <td class="${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'abnormal' : ''}">
-                            ${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'Abnormal and Harmful' : 'Normal'}
-                        </td>
-                    </tr>
-                `;
+            // Replace 'API_KEY' with your actual API key
+            const apiKey = '2c30af85321ece6e47fc671496cd06829795f8cba7ca2886a530ac38bbc75d2a';
 
-                tableContainer.innerHTML = '';
-                tableContainer.appendChild(table);
+            // Set up headers with your API key
+            const headers = new Headers({
+                'x-api-key': apiKey,
+                'Content-type': 'application/json',
+            });
 
-                // Determine AQI category and check for abnormality
-                let aqiCategory;
-                let isAbnormal = false;
-                let abnormalReasons = '';
-                if (data.stations[0].aqiInfo) {
-                    aqiCategory = data.stations[0].aqiInfo.category;
+            // Set up the request configuration
+            const requestOptions = {
+                method: 'GET',
+                headers: headers,
+            };
+
+            // Make the API request
+            fetch(apiUrl, requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Get a reference to the table container, chart container, and abnormal reason container
+                    const tableContainer = document.getElementById('table-container');
+                    const chartContainer = document.getElementById('chart-container');
+                    const abnormalReason = document.getElementById('abnormal-reason');
+                    tableContainer.style.display = 'none'; // Hide table by default
+                    chartContainer.style.display = 'none'; // Hide chart by default
+                    abnormalReason.style.display = 'none'; // Hide abnormal reason by default
+                    tableContainer.innerHTML = ''; // Clear previous data
+                    chartContainer.innerHTML = ''; // Clear previous chart
+                    abnormalReason.innerHTML = ''; // Clear previous reason
+
+                    // Create the table element
+                    const table = document.createElement('table');
+                    table.classList.add('tftable');
+
+                    // Create the table body
+                    const tbody = document.createElement('tbody');
+
+                    // Loop through the API stations data and create table rows
+                    data.stations.forEach(station => {
+                        const rowData = [
+                            'City', station.city,
+                            'Country Code', station.countryCode,
+                            'Division', station.division,
+                            'Latitude', station.lat,
+                            'Longitude', station.lng,
+                            'Place Name', station.placeName,
+                            'Postal Code', station.postalCode,
+                            'State', station.state,
+                            'Updated At', station.updatedAt,
+                            'AQI', station.AQI,
+                            'PM2.5', station['PM25'],
+                            'CO', station.CO,
+                            'OZONE', station.OZONE,
+                            'NO2', station.NO2,
+                            'PM10', station.PM10,
+                            'SO2', station.SO2,
+                            'AQI Category', station.aqiInfo.category || '-'
+                        ];
+
+                        rowData.forEach((cellData, index) => {
+                            if (index % 2 === 0) {
+                                const row = document.createElement('tr');
+                                const parameterCell = document.createElement('td');
+                                parameterCell.textContent = cellData;
+                                row.appendChild(parameterCell);
+                                tbody.appendChild(row);
+                            } else {
+                                const valueCell = document.createElement('td');
+                                valueCell.textContent = cellData;
+                                const currentRow = tbody.lastChild;
+                                currentRow.appendChild(valueCell);
+                            }
+                        });
+                    });
+
+                    table.appendChild(tbody);
+
+                    // Append the table to the container and display it
+                    tableContainer.appendChild(table);
+                    tableContainer.style.display = 'block';
+
+                    // Create a chart with data and display it
+                    createChart(data.stations[0]);
+
+                    // Check for abnormal AQI
+                    const aqiCategory = data.stations[0].aqiInfo.category;
+                    let isAbnormal = false;
+                    let abnormalReasons = '';
+
                     if (aqiCategory !== 'Good' && aqiCategory !== 'Satisfactory') {
                         isAbnormal = true;
                         abnormalReasons = `
@@ -226,45 +246,87 @@
                             </ul>
                         `;
                     }
+
+                    // Display AQI category and abnormal status in the table
+                    if (tableContainer) {
+                        const aqiCategoryCell = document.createElement('tr');
+                        aqiCategoryCell.innerHTML = `
+                            <th>AQI Category</th>
+                            <td class="${isAbnormal ? 'abnormal' : ''}">
+                                ${aqiCategory || '-'}
+                            </td>
+                        `;
+                        tableBody.appendChild(aqiCategoryCell);
+                    }
+
+                    // Display reasons for abnormal AQI
+                    abnormalReason.innerHTML = ''; // Clear previous data
+                    if (isAbnormal) {
+                        abnormalReason.style.display = 'block';
+                        abnormalReason.innerHTML = abnormalReasons;
+                    } else {
+                        abnormalReason.style.display = 'none'; // Hide if not abnormal
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Function to create a line chart
+        function createChart(data) {
+            const ctx = document.createElement('canvas');
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.appendChild(ctx);
+
+            const chartData = {
+                labels: ['PM2.5', 'CO', 'OZONE', 'NO2', 'PM10', 'SO2'],
+                datasets: [{
+                    label: 'Pollutants',
+                    data: [
+                        data['PM25'],
+                        data.CO,
+                        data.OZONE,
+                        data.NO2,
+                        data.PM10,
+                        data.SO2
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const chartOptions = {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
+            };
 
-                // Display AQI category and abnormal status in the table
-                if (tableContainer) {
-                    const aqiCategoryCell = document.createElement('tr');
-                    aqiCategoryCell.innerHTML = `
-                        <th>AQI Category</th>
-                        <td class="${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'abnormal' : ''}">
-                            ${aqiCategory || '-'}
-                        </td>
-                    `;
-                    table.appendChild(aqiCategoryCell);
-
-                    const abnormalCell = document.createElement('tr');
-                    abnormalCell.innerHTML = `
-                        <th>Abnormal Status</th>
-                        <td class="${isAbnormal ? 'abnormal' : ''}">
-                            ${isAbnormal ? 'Abnormal and Harmful' : 'Normal'}
-                        </td>
-                    `;
-                    table.appendChild(abnormalCell);
-                }
-
-                // Display reasons for abnormal AQI
-                abnormalReason.innerHTML = ''; // Clear previous data
-                if (isAbnormal) {
-                    abnormalReason.style.display = 'block';
-                    abnormalReason.innerHTML = abnormalReasons;
-                } else {
-                    abnormalReason.style.display = 'none'; // Hide if not abnormal
-                }
-
-                // Show the table and chart containers
-                tableContainer.style.display = 'block';
-                chartContainer.style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
             });
+
+            // Display the chart container
+            chartContainer.style.display = 'block';
         }
     </script>
 </body>
