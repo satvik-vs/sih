@@ -84,29 +84,6 @@
             max-width: 500px; /* Adjust the width as needed */
             margin: 0 auto; /* Center the chart horizontally */
         }
-
-        /* Styling for AQI category */
-        .aqi-category {
-            color: white;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        .abnormal {
-            background-color: red;
-        }
-
-        /* Styling for the abnormality reason section */
-        .abnormal-reason {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: rgba(255, 0, 0, 0.2); /* Red background */
-            border-radius: 10px;
-            display: none; /* Hidden by default */
-        }
     </style>
     <title>AQI and WQI Monitor</title>
 </head>
@@ -128,9 +105,6 @@
             </div>
             <div class="chart-container" id="chart-container">
                 <!-- The chart will be rendered here -->
-            </div>
-            <div class="abnormal-reason" id="abnormal-reason">
-                <!-- Abnormal AQI reason will be displayed here -->
             </div>
         </div>
     </main>
@@ -165,16 +139,13 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container, chart container, and abnormal reason container
+                    // Get a reference to the table container and chart container
                     const tableContainer = document.getElementById('table-container');
                     const chartContainer = document.getElementById('chart-container');
-                    const abnormalReason = document.getElementById('abnormal-reason');
                     tableContainer.style.display = 'none'; // Hide table by default
                     chartContainer.style.display = 'none'; // Hide chart by default
-                    abnormalReason.style.display = 'none'; // Hide abnormal reason by default
                     tableContainer.innerHTML = ''; // Clear previous data
                     chartContainer.innerHTML = ''; // Clear previous chart
-                    abnormalReason.innerHTML = ''; // Clear previous reason
 
                     // Create the table element
                     const table = document.createElement('table');
@@ -202,7 +173,8 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', station.aqiInfo.category || '-'
+                            'AQI Category', station.aqiInfo.category || '-',
+                            'AQI Status', getStatusHTML(station.aqiInfo.category)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -214,7 +186,7 @@
                                 tbody.appendChild(row);
                             } else {
                                 const valueCell = document.createElement('td');
-                                valueCell.textContent = cellData;
+                                valueCell.innerHTML = cellData;
                                 const currentRow = tbody.lastChild;
                                 currentRow.appendChild(valueCell);
                             }
@@ -229,44 +201,6 @@
 
                     // Create a chart with data and display it
                     createChart(data.stations[0]);
-
-                    // Check for abnormal AQI
-                    const aqiCategory = data.stations[0].aqiInfo.category;
-                    let isAbnormal = false;
-                    let abnormalReasons = '';
-
-                    if (aqiCategory !== 'Good' && aqiCategory !== 'Satisfactory') {
-                        isAbnormal = true;
-                        abnormalReasons = `
-                            <h3>Abnormal AQI Reasons:</h3>
-                            <ul>
-                                <li>High levels of pollutants</li>
-                                <li>Poor air quality in the area</li>
-                                <li>Weather conditions affecting air quality</li>
-                            </ul>
-                        `;
-                    }
-
-                    // Display AQI category and abnormal status in the table
-                    if (tableContainer) {
-                        const aqiCategoryCell = document.createElement('tr');
-                        aqiCategoryCell.innerHTML = `
-                            <th>AQI Category</th>
-                            <td class="${isAbnormal ? 'abnormal' : ''}">
-                                ${aqiCategory || '-'}
-                            </td>
-                        `;
-                        tableBody.appendChild(aqiCategoryCell);
-                    }
-
-                    // Display reasons for abnormal AQI
-                    abnormalReason.innerHTML = ''; // Clear previous data
-                    if (isAbnormal) {
-                        abnormalReason.style.display = 'block';
-                        abnormalReason.innerHTML = abnormalReasons;
-                    } else {
-                        abnormalReason.style.display = 'none'; // Hide if not abnormal
-                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -327,6 +261,42 @@
 
             // Display the chart container
             chartContainer.style.display = 'block';
+        }
+
+        function getStatusHTML(category) {
+            let status = '';
+            let color = '';
+
+            switch (category) {
+                case 'Good':
+                    status = 'Normal';
+                    color = 'green';
+                    break;
+                case 'Satisfactory':
+                    status = 'Moderate';
+                    color = 'brown';
+                    break;
+                default:
+                    status = 'Abnormal';
+                    color = 'red';
+                    break;
+            }
+
+            let solutions = '';
+            if (category !== 'Good' && category !== 'Satisfactory') {
+                solutions = `
+                    <h3>Solutions for Abnormal AQI:</h3>
+                    <ul>
+                        <li>Avoid outdoor activities.</li>
+                        <li>Use masks to reduce exposure to pollutants.</li>
+                        <li>Keep windows and doors closed to prevent indoor pollution.</li>
+                        <li>Use air purifiers indoors.</li>
+                        <li>Follow local advisories and alerts.</li>
+                    </ul>
+                `;
+            }
+
+            return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
     </script>
 </body>
