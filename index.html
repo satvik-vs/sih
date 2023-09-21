@@ -160,8 +160,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', station.lat,
-                            'Longitude', station.lng,
+                            'Latitude', getFormattedCoordinate(station.lat),
+                            'Longitude', getFormattedCoordinate(station.lng),
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -297,6 +297,13 @@
             }
 
             return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
+        }
+
+        function getFormattedCoordinate(coordinate) {
+            const degrees = Math.floor(coordinate);
+            const minutes = Math.floor((coordinate - degrees) * 60);
+            const seconds = ((coordinate - degrees - minutes / 60) * 3600).toFixed(2);
+            return `${degrees}° ${minutes}' ${seconds}"`;
         }
     </script>
 </body>
