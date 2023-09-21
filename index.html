@@ -160,8 +160,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', `${station.lat}° ${station.lat > 0 ? 'N' : 'S'}`,
-                            'Longitude', `${station.lng}° ${station.lng > 0 ? 'E' : 'W'}`,
+                            'Latitude', convertDecimalToDMS(station.lat),
+                            'Longitude', convertDecimalToDMS(station.lng),
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -173,8 +173,7 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', station.aqiInfo.category || '-',
-                            'AQI Status', getStatusHTML(station)
+                            'AQI Category', getStatusHTML(station.AQI)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -263,14 +262,14 @@
             chartContainer.style.display = 'block';
         }
 
-        function getStatusHTML(station) {
+        function getStatusHTML(aqi) {
             let status = '';
             let color = '';
 
-            if (station.AQI <= 50) {
+            if (aqi >= 0 && aqi <= 50) {
                 status = 'Good';
                 color = 'green';
-            } else if (station.AQI <= 100) {
+            } else if (aqi >= 51 && aqi <= 100) {
                 status = 'Satisfactory';
                 color = 'brown';
             } else {
@@ -293,6 +292,14 @@
             }
 
             return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
+        }
+
+        function convertDecimalToDMS(decimal) {
+            const degrees = Math.floor(decimal);
+            const minutes = Math.floor((decimal - degrees) * 60);
+            const seconds = ((decimal - degrees - (minutes / 60)) * 3600).toFixed(2);
+
+            return `${degrees}° ${minutes}' ${seconds}"`;
         }
     </script>
 </body>
