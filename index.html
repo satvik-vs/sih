@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
     <title>AQI and WQI Monitor</title>
 </head>
 <body>
     <header>
-        <h1>Air and Water Quality Monitor</h1>
+        <h1>Air Quality Index (AQI) Monitor</h1>
     </header>
     <main>
         <section id="aqi-section">
-            <h2>Air Quality Index (AQI)</h2>
-            <p id="aqi-value">Loading...</p>
+            <h2>AQI Parameters</h2>
+            <p id="pm25-value">PM2.5: Loading...</p>
+            <p id="pm10-value">PM10: Loading...</p>
+            <p id="no2-value">NO2: Loading...</p>
+            <p id="co-value">CO: Loading...</p>
+            <p id="o2-value">O2: Loading...</p>
         </section>
-        <section id="wqi-section">
-            <h2>Water Quality Index (WQI)</h2>
-            <p id="wqi-value">Loading...</p>
+        <section id="aqi-info-section">
+            <h2>AQI Information</h2>
+            <p id="aqi-value">AQI: Loading...</p>
+            <p id="pollutant-value">Pollutant: Loading...</p>
+            <p id="concentration-value">Concentration: Loading...</p>
+            <p id="category-value">Category: Loading...</p>
         </section>
     </main>
     <script src="script.js"></script>
