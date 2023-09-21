@@ -60,18 +60,17 @@
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
-            border: 2px solid #333; /* Thicker border */
+            width: 100%;
         }
 
-        table th, table td {
-            border: 2px solid #333; /* Thicker border */
+        th, td {
+            border: 2px solid black; /* Thicker border */
             padding: 10px;
             text-align: left;
         }
 
-        table th {
+        th {
             background-color: #f2f2f2;
         }
 
@@ -145,117 +144,123 @@
                 const tableContainer = document.getElementById('table-container');
                 const chartContainer = document.getElementById('chart-container');
                 const abnormalReason = document.getElementById('abnormal-reason');
-                const tbody = document.createElement('tbody');
-                tbody.innerHTML = `
+                const table = document.createElement('table');
+                table.innerHTML = `
                     <tr>
                         <th>City</th>
+                        <td>${data.stations[0].city}</td>
+                    </tr>
+                    <tr>
                         <th>Country Code</th>
+                        <td>${data.stations[0].countryCode}</td>
+                    </tr>
+                    <tr>
                         <th>Division</th>
+                        <td>${data.stations[0].division}</td>
+                    </tr>
+                    <tr>
                         <th>Latitude</th>
+                        <td>${data.stations[0].lat}</td>
+                    </tr>
+                    <tr>
                         <th>Longitude</th>
+                        <td>${data.stations[0].lng}</td>
+                    </tr>
+                    <tr>
                         <th>Place Name</th>
+                        <td>${data.stations[0].placeName}</td>
+                    </tr>
+                    <tr>
                         <th>Postal Code</th>
+                        <td>${data.stations[0].postalCode}</td>
+                    </tr>
+                    <tr>
                         <th>State</th>
+                        <td>${data.stations[0].state}</td>
+                    </tr>
+                    <tr>
                         <th>Updated At</th>
+                        <td>${data.stations[0].updatedAt}</td>
+                    </tr>
+                    <tr>
                         <th>AQI</th>
+                        <td>${data.stations[0].AQI}</td>
+                    </tr>
+                    <tr>
                         <th>Pollutant</th>
+                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.pollutant : '-'}</td>
+                    </tr>
+                    <tr>
                         <th>Concentration</th>
+                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.concentration : '-'}</td>
+                    </tr>
+                    <tr>
                         <th>Category</th>
-                        <th>Abnormal Status</th>
+                        <td>${data.stations[0].aqiInfo ? data.stations[0].aqiInfo.category : '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>AQI Category</th>
+                        <td class="${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'abnormal' : ''}">
+                            ${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'Abnormal and Harmful' : 'Normal'}
+                        </td>
                     </tr>
                 `;
 
-                // Check if data is available and create table rows
-                if (data.stations && data.stations.length > 0) {
-                    data.stations.forEach(station => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${station.city}</td>
-                            <td>${station.countryCode}</td>
-                            <td>${station.division}</td>
-                            <td>${station.lat}</td>
-                            <td>${station.lng}</td>
-                            <td>${station.placeName}</td>
-                            <td>${station.postalCode}</td>
-                            <td>${station.state}</td>
-                            <td>${station.updatedAt}</td>
-                            <td>${station.AQI}</td>
-                            <td>${station.aqiInfo ? station.aqiInfo.pollutant : '-'}</td>
-                            <td>${station.aqiInfo ? station.aqiInfo.concentration : '-'}</td>
-                            <td>${station.aqiInfo ? station.aqiInfo.category : '-'}</td>
-                            <td class="${station.aqiInfo && (station.aqiInfo.category !== 'Good' && station.aqiInfo.category !== 'Satisfactory') ? 'abnormal' : ''}">
-                                ${station.aqiInfo && (station.aqiInfo.category !== 'Good' && station.aqiInfo.category !== 'Satisfactory') ? 'Abnormal and Harmful' : 'Normal'}
-                            </td>
+                tableContainer.innerHTML = '';
+                tableContainer.appendChild(table);
+
+                // Determine AQI category and check for abnormality
+                let aqiCategory;
+                let isAbnormal = false;
+                let abnormalReasons = '';
+                if (data.stations[0].aqiInfo) {
+                    aqiCategory = data.stations[0].aqiInfo.category;
+                    if (aqiCategory !== 'Good' && aqiCategory !== 'Satisfactory') {
+                        isAbnormal = true;
+                        abnormalReasons = `
+                            <h3>Abnormal AQI Reasons:</h3>
+                            <ul>
+                                <li>High levels of pollutants</li>
+                                <li>Poor air quality in the area</li>
+                                <li>Weather conditions affecting air quality</li>
+                            </ul>
                         `;
-
-                        tbody.appendChild(row);
-                    });
-
-                    tableContainer.innerHTML = '';
-                    tableContainer.appendChild(tbody);
-
-                    // Determine AQI category and check for abnormality
-                    let aqiCategory;
-                    let isAbnormal = false;
-                    let abnormalReasons = '';
-                    if (data.stations[0].aqiInfo) {
-                        aqiCategory = data.stations[0].aqiInfo.category;
-                        if (aqiCategory !== 'Good' && aqiCategory !== 'Satisfactory') {
-                            isAbnormal = true;
-                            abnormalReasons = `
-                                <h3>Abnormal AQI Reasons:</h3>
-                                <ul>
-                                    <li>High levels of pollutants</li>
-                                    <li>Poor air quality in the area</li>
-                                    <li>Weather conditions affecting air quality</li>
-                                </ul>
-                            `;
-                        }
                     }
-
-                    // Display AQI category and abnormal status in the table
-                    if (tableContainer) {
-                        const aqiCategoryCell = document.createElement('td');
-                        aqiCategoryCell.textContent = aqiCategory || '-';
-                        if (isAbnormal) {
-                            aqiCategoryCell.classList.add('abnormal');
-                        }
-
-                        const abnormalCell = document.createElement('td');
-                        if (isAbnormal) {
-                            abnormalCell.textContent = 'Abnormal and Harmful';
-                        } else {
-                            abnormalCell.textContent = 'Normal';
-                        }
-                        if (isAbnormal) {
-                            abnormalCell.classList.add('abnormal');
-                        }
-
-                        const currentRow = tbody.lastChild;
-                        currentRow.appendChild(aqiCategoryCell);
-                        currentRow.appendChild(abnormalCell);
-                    }
-
-                    // ... (previous code to create and display the table) ...
-
-                    // Display reasons for abnormal AQI
-                    abnormalReason.innerHTML = ''; // Clear previous data
-                    if (isAbnormal) {
-                        abnormalReason.style.display = 'block';
-                        abnormalReason.innerHTML = abnormalReasons;
-                    } else {
-                        abnormalReason.style.display = 'none'; // Hide if not abnormal
-                    }
-
-                    // Show the table and chart containers
-                    tableContainer.style.display = 'block';
-                    chartContainer.style.display = 'block';
-                } else {
-                    // Data not available
-                    tableContainer.innerHTML = '<p>Data not available for the entered location.</p>';
-                    chartContainer.innerHTML = '';
-                    abnormalReason.innerHTML = '';
                 }
+
+                // Display AQI category and abnormal status in the table
+                if (tableContainer) {
+                    const aqiCategoryCell = document.createElement('tr');
+                    aqiCategoryCell.innerHTML = `
+                        <th>AQI Category</th>
+                        <td class="${data.stations[0].aqiInfo && (data.stations[0].aqiInfo.category !== 'Good' && data.stations[0].aqiInfo.category !== 'Satisfactory') ? 'abnormal' : ''}">
+                            ${aqiCategory || '-'}
+                        </td>
+                    `;
+                    table.appendChild(aqiCategoryCell);
+
+                    const abnormalCell = document.createElement('tr');
+                    abnormalCell.innerHTML = `
+                        <th>Abnormal Status</th>
+                        <td class="${isAbnormal ? 'abnormal' : ''}">
+                            ${isAbnormal ? 'Abnormal and Harmful' : 'Normal'}
+                        </td>
+                    `;
+                    table.appendChild(abnormalCell);
+                }
+
+                // Display reasons for abnormal AQI
+                abnormalReason.innerHTML = ''; // Clear previous data
+                if (isAbnormal) {
+                    abnormalReason.style.display = 'block';
+                    abnormalReason.innerHTML = abnormalReasons;
+                } else {
+                    abnormalReason.style.display = 'none'; // Hide if not abnormal
+                }
+
+                // Show the table and chart containers
+                tableContainer.style.display = 'block';
+                chartContainer.style.display = 'block';
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
