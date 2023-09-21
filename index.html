@@ -3,39 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styling for the background image */
+        body {
+            background-image: url('https://example.com/your-background-image.jpg'); /* Replace with your image URL */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Styling for the table */
+        .table-container {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+        }
+
+        .tftable {
+            font-size: 14px;
+            color: #333333;
+            width: 100%;
+            border-width: 1px;
+            border-color: #87ceeb;
+            border-collapse: collapse;
+        }
+
+        .tftable th {
+            font-size: 18px;
+            background-color: #87ceeb;
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #87ceeb;
+            text-align: left;
+        }
+
+        .tftable tr {
+            background-color: #ffffff;
+        }
+
+        .tftable td {
+            font-size: 14px;
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #87ceeb;
+        }
+
+        .tftable tr:hover {
+            background-color: #e0ffff;
+        }
+    </style>
     <title>AQI and WQI Monitor</title>
 </head>
 <body>
     <header>
-        <h1>Air Quality Index (AQI) Monitor</h1>
+        <h1 style="color: #fff; text-align: center;">Air Quality Index (AQI) Monitor</h1>
     </header>
     <main>
-        <section id="api-data-section">
-            <h2>API Data</h2>
-            <ul>
-                <li><strong>CO:</strong> <span id="co-value">Loading...</span></li>
-                <li><strong>NO2:</strong> <span id="no2-value">Loading...</span></li>
-                <li><strong>OZONE:</strong> <span id="ozone-value">Loading...</span></li>
-                <li><strong>PM10:</strong> <span id="pm10-value">Loading...</span></li>
-                <li><strong>PM2.5:</strong> <span id="pm25-value">Loading...</span></li>
-                <li><strong>SO2:</strong> <span id="so2-value">Loading...</span></li>
-                <li><strong>City:</strong> <span id="city-value">Loading...</span></li>
-                <li><strong>Country Code:</strong> <span id="country-code-value">Loading...</span></li>
-                <li><strong>Division:</strong> <span id="division-value">Loading...</span></li>
-                <li><strong>Latitude:</strong> <span id="lat-value">Loading...</span></li>
-                <li><strong>Longitude:</strong> <span id="lng-value">Loading...</span></li>
-                <li><strong>Place Name:</strong> <span id="place-name-value">Loading...</span></li>
-                <li><strong>Postal Code:</strong> <span id="postal-code-value">Loading...</span></li>
-                <li><strong>State:</strong> <span id="state-value">Loading...</span></li>
-                <li><strong>Updated At:</strong> <span id="updated-at-value">Loading...</span></li>
-                <li><strong>AQI:</strong> <span id="aqi-value">Loading...</span></li>
-                <li><strong>Pollutant:</strong> <span id="pollutant-value">Loading...</span></li>
-                <li><strong>Concentration:</strong> <span id="concentration-value">Loading...</span></li>
-                <li><strong>Category:</strong> <span id="category-value">Loading...</span></li>
-            </ul>
-        </section>
+        <div class="table-container" id="table-container">
+            <!-- The table will be rendered here -->
+        </div>
     </main>
-    <script src="script.js"></script>
+    <script>
+        const apiUrl = 'https://api.ambeedata.com/latest/by-lat-lng?lat=12&lng=77';
+        const apiKey = '2c30af85321ece6e47fc671496cd06829795f8cba7ca2886a530ac38bbc75d2a';
+
+        // Set up headers with your API key
+        const headers = new Headers({
+            'x-api-key': apiKey,
+        });
+
+        // Set up the request configuration
+        const requestOptions = {
+            method: 'GET',
+            headers: headers,
+        };
+
+        // Function to fetch data and populate the table
+        function fetchDataAndDisplay() {
+            // Make the API request
+            fetch(apiUrl, requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Get a reference to the table container
+                    const tableContainer = document.getElementById('table-container');
+
+                    // Create the table element
+                    const table = document.createElement('table');
+                    table.classList.add('tftable');
+
+                    // Create the table header row
+                    const thead = document.createElement('thead');
+                    const headerRow = document.createElement('tr');
+
+                    // Define the table headers
+                    const headers = [
+                        'City', 'Country Code', 'Division', 'Latitude', 'Longitude',
+                        'Place Name', 'Postal Code', 'State', 'Updated At', 'AQI',
+                        'Pollutant', 'Concentration', 'Category'
+                    ];
+
+                    headers.forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.textContent = headerText;
+                        headerRow.appendChild(th);
+                    });
+
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    // Create the table body
+                    const tbody = document.createElement('tbody');
+
+                    // Loop through the API stations data and create table rows
+                    data.stations.forEach(station => {
+                        const row = document.createElement('tr');
+                        const rowData = [
+                            station.city, station.countryCode, station.division, station.lat,
+                            station.lng, station.placeName, station.postalCode, station.state,
+                            station.updatedAt, station.AQI, station.aqiInfo.pollutant,
+                            station.aqiInfo.concentration, station.aqiInfo.category
+                        ];
+
+                        rowData.forEach(cellData => {
+                            const cell = document.createElement('td');
+                            cell.textContent = cellData;
+                            row.appendChild(cell);
+                        });
+
+                        tbody.appendChild(row);
+                    });
+
+                    table.appendChild(tbody);
+
+                    // Append the table to the container
+                    tableContainer.appendChild(table);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Call the function to fetch data and populate the table
+        fetchDataAndDisplay();
+    </script>
 </body>
 </html>
