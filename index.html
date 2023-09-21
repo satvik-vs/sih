@@ -160,8 +160,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', station.lat,
-                            'Longitude', station.lng,
+                            'Latitude', `${station.lat}° ${station.lat > 0 ? 'N' : 'S'}`,
+                            'Longitude', `${station.lng}° ${station.lng > 0 ? 'E' : 'W'}`,
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -264,8 +264,23 @@
         }
 
         function getStatusHTML(station) {
-            if (station.aqiInfo.category === 'Abnormal') {
-                const solutions = `
+            let status = '';
+            let color = '';
+
+            if (station.AQI <= 50) {
+                status = 'Good';
+                color = 'green';
+            } else if (station.AQI <= 100) {
+                status = 'Satisfactory';
+                color = 'brown';
+            } else {
+                status = 'Abnormal';
+                color = 'red';
+            }
+
+            let solutions = '';
+            if (status === 'Abnormal') {
+                solutions = `
                     <h3>Solutions for Abnormal AQI:</h3>
                     <ul>
                         <li>Avoid outdoor activities.</li>
@@ -275,10 +290,9 @@
                         <li>Follow local advisories and alerts.</li>
                     </ul>
                 `;
-                return `<span style="color: red; font-weight: bold;">Abnormal</span><br>${solutions}`;
-            } else {
-                return `<span style="color: green; font-weight: bold;">Normal</span>`;
             }
+
+            return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
     </script>
 </body>
