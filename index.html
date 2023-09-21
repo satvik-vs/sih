@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         /* Styling for the background image */
         body {
-            background-image: url('https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjEwMTYtYy0wOS1rc2g2bjE3by5qcGc.jpg'); /* Replace with your image URL */
+            background-image: url('https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_1280.jpg'); /* Replace with your image URL */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -15,14 +17,69 @@
             padding: 0;
         }
 
+        /* Styling for the container */
+        .container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Styling for the form */
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 500px; /* Adjust the width as needed */
+            margin: 0 auto; /* Center the form horizontally */
+        }
+
+        /* Styling for labels and input fields */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: white; /* Change text color to white */
+            font-weight: bold; /* Add bold style */
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
         /* Styling for the table */
         .table-container {
             background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
             border-radius: 10px;
             padding: 20px;
-            margin: 20px;
-            max-width: 500px; /* Adjust the width as needed */
+            margin: 20px 0;
+            max-width: 800px; /* Adjust the width as needed */
             margin: 0 auto; /* Center the table horizontally */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Styling for the line graph */
+        .chart-container {
+            max-width: 500px;
+            margin: 0 auto;
         }
     </style>
     <title>AQI and WQI Monitor</title>
@@ -32,15 +89,20 @@
         <h1 style="color: #fff; text-align: center;">Air Quality Index (AQI) Monitor</h1>
     </header>
     <main>
-        <div style="text-align: center;">
-            <label for="postal-code">Enter Postal Code:</label>
-            <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code">
-            <label for="country-code">Enter Country Code (e.g., IN for India):</label>
-            <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code">
-            <button onclick="fetchData()">Fetch Data</button>
-        </div>
-        <div class="table-container" id="table-container">
-            <!-- The table will be rendered here -->
+        <div class="container">
+            <div class="form-container">
+                <label for="postal-code">Enter Postal Code:</label>
+                <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code">
+                <label for="country-code">Enter Country Code (e.g., IN for India):</label>
+                <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code">
+                <button onclick="fetchData()">Fetch Data</button>
+            </div>
+            <div class="table-container" id="table-container">
+                <!-- The table will be rendered here -->
+            </div>
+            <div class="chart-container" id="chart-container">
+                <!-- The chart will be rendered here -->
+            </div>
         </div>
     </main>
     <script>
@@ -74,9 +136,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container
+                    // Get a reference to the table container and chart container
                     const tableContainer = document.getElementById('table-container');
+                    const chartContainer = document.getElementById('chart-container');
                     tableContainer.innerHTML = ''; // Clear previous data
+                    chartContainer.innerHTML = ''; // Clear previous chart
 
                     // Create the table element
                     const table = document.createElement('table');
@@ -88,22 +152,22 @@
                     // Loop through the API stations data and create table rows
                     data.stations.forEach(station => {
                         const rowData = [
-                            'City : ', station.city,
-                            'Country Code : ', station.countryCode,
-                            'Division : ', station.division,
-                            'Latitude : ', station.lat,
-                            'Longitude : ', station.lng,
-                            'Place Name : ', station.placeName,
-                            'Postal Code : ', station.postalCode,
-                            'State : ', station.state,
-                            'Updated At : ', station.updatedAt,
-                            'AQI [ Air Quality Index ]: ', station.AQI,
-                            'PM2.5 [ Particular Matter 2.5 ] : ', station['PM25'],
-                            'CO [ Carbon Mono Oxide ]  : ', station.CO,
-                            'O3[ OZONE ]  : ', station.OZONE,
-                            'NO2 [ Nitrogen Di-Oxide ]: ', station.NO2,
-                            'PM10 [ Paricukar Mattter ]: ', station.PM10,
-                            'SO2 [ Sulphur Di-Oxide ] : ', station.SO2
+                            'City', station.city,
+                            'Country Code', station.countryCode,
+                            'Division', station.division,
+                            'Latitude', station.lat,
+                            'Longitude', station.lng,
+                            'Place Name', station.placeName,
+                            'Postal Code', station.postalCode,
+                            'State', station.state,
+                            'Updated At', station.updatedAt,
+                            'AQI', station.AQI,
+                            'PM2.5', station['PM25'],
+                            'CO', station.CO,
+                            'OZONE', station.OZONE,
+                            'NO2', station.NO2,
+                            'PM10', station.PM10,
+                            'SO2', station.SO2
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -126,14 +190,67 @@
 
                     // Append the table to the container
                     tableContainer.appendChild(table);
+
+                    // Create a chart with data
+                    createChart(data.stations[0]);
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
 
-        // Initially, you can populate the table with data for a default postal code and country code (or remove this line)
-        fetchData();
+        // Function to create a line chart
+        function createChart(data) {
+            const ctx = document.createElement('canvas');
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.appendChild(ctx);
+
+            const chartData = {
+                labels: ['PM2.5', 'CO', 'OZONE', 'NO2', 'PM10', 'SO2'],
+                datasets: [{
+                    label: 'Pollutants',
+                    data: [
+                        data['PM25'],
+                        data.CO,
+                        data.OZONE,
+                        data.NO2,
+                        data.PM10,
+                        data.SO2
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const chartOptions = {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            };
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
+            });
+        }
     </script>
 </body>
 </html>
