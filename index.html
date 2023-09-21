@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         /* Styling for the background image */
         body {
-            background-image: url('https://images.freecreatives.com/wp-content/uploads/2016/04/Free-Website-BAckgrounds1.jpg'); /* Replace with your image URL */
+            background-image: url('https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcm0yMjItbWluZC0xNl8xLmpwZw.jpg'); /* Replace with your image URL */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -23,39 +25,19 @@
             margin: 20px;
         }
 
-        .tftable {
-            font-size: 14px;
-            color: #333333;
-            width: 100%;
-            border-width: 1px;
-            border-color: #87ceeb;
-            border-collapse: collapse;
+        /* Styling for the AQI box */
+        .aqi-box {
+            background-color: green;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
         }
 
-        .tftable th {
-            font-size: 18px;
-            background-color: #87ceeb;
-            border-width: 1px;
-            padding: 8px;
-            border-style: solid;
-            border-color: #87ceeb;
-            text-align: left;
-        }
-
-        .tftable tr {
-            background-color: #ffffff;
-        }
-
-        .tftable td {
-            font-size: 14px;
-            border-width: 1px;
-            padding: 8px;
-            border-style: solid;
-            border-color: #87ceeb;
-        }
-
-        .tftable tr:hover {
-            background-color: #e0ffff;
+        /* Styling for the chart container */
+        .chart-container {
+            padding: 20px;
         }
     </style>
     <title>AQI and WQI Monitor</title>
@@ -67,6 +49,9 @@
     <main>
         <div class="table-container" id="table-container">
             <!-- The table will be rendered here -->
+        </div>
+        <div class="chart-container" id="chart-container">
+            <!-- The charts will be rendered here -->
         </div>
         <div style="text-align: center;">
             <label for="postal-code">Enter Postal Code:</label>
@@ -102,13 +87,56 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container
+                    // Get a reference to the table container and chart container
                     const tableContainer = document.getElementById('table-container');
+                    const chartContainer = document.getElementById('chart-container');
                     tableContainer.innerHTML = ''; // Clear previous data
+                    chartContainer.innerHTML = ''; // Clear previous charts
 
                     // Create the table element
                     const table = document.createElement('table');
                     table.classList.add('tftable');
+
+                    // Create the AQI box
+                    const aqiBox = document.createElement('div');
+                    aqiBox.classList.add('aqi-box');
+                    aqiBox.textContent = `AQI: ${data.stations[0].AQI}`;
+                    chartContainer.appendChild(aqiBox);
+
+                    // Create the chart for pollutants
+                    const pollutants = ['CO', 'NO2', 'OZONE', 'PM10', 'PM25', 'SO2'];
+                    pollutants.forEach(pollutant => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 300;
+                        canvas.height = 200;
+                        chartContainer.appendChild(canvas);
+
+                        const ctx = canvas.getContext('2d');
+                        const pollutantData = {
+                            labels: ['Category', 'Concentration'],
+                            datasets: [
+                                {
+                                    label: pollutant,
+                                    data: [data.stations[0].aqiInfo.category, data.stations[0][pollutant]],
+                                    backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                                    borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                                    borderWidth: 1,
+                                },
+                            ],
+                        };
+
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: pollutantData,
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                    },
+                                },
+                            },
+                        });
+                    });
 
                     // Create the table header row
                     const thead = document.createElement('thead');
@@ -116,10 +144,7 @@
 
                     // Define the table headers
                     const headers = [
-                        'City', 'Country Code', 'Division', 'Latitude', 'Longitude',
-                        'Place Name', 'Postal Code', 'State', 'Updated At', 'AQI',
-                        'CO', 'NO2', 'OZONE', 'PM10', 'PM2.5', 'SO2',
-                        'Pollutant', 'Concentration', 'Category'
+                        'Parameter', 'Value'
                     ];
 
                     headers.forEach(headerText => {
@@ -138,12 +163,15 @@
                     data.stations.forEach(station => {
                         const row = document.createElement('tr');
                         const rowData = [
-                            station.city, station.countryCode, station.division, station.lat,
-                            station.lng, station.placeName, station.postalCode, station.state,
-                            station.updatedAt, station.AQI, station.CO, station.NO2,
-                            station.OZONE, station.PM10, station.PM25, station.SO2,
-                            station.aqiInfo.pollutant, station.aqiInfo.concentration,
-                            station.aqiInfo.category
+                            'City', station.city,
+                            'Country Code', station.countryCode,
+                            'Division', station.division,
+                            'Latitude', station.lat,
+                            'Longitude', station.lng,
+                            'Place Name', station.placeName,
+                            'Postal Code', station.postalCode,
+                            'State', station.state,
+                            'Updated At', station.updatedAt,
                         ];
 
                         rowData.forEach(cellData => {
