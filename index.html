@@ -95,13 +95,9 @@
         <div class="container">
             <div class="form-container">
                 <label for="postal-code">Enter Postal Code:</label>
-                <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code">
-                <label for="country-code">Select Country Code:</label>
-                <select id="country-code" name="country-code">
-                    <option value="IN">India (IN)</option>
-                    <option value="US">United States (US)</option>
-                    <!-- Add more options here -->
-                </select>
+                <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code" disabled>
+                <label for="country-code">Enter Country Code (e.g., IN for India):</label>
+                <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code" disabled>
                 <button onclick="fetchData()">Fetch Data</button>
             </div>
             <div class="table-container" id="table-container">
@@ -115,8 +111,54 @@
     <script>
         // Function to fetch data and populate the table based on the entered postal code and country code
         function fetchData() {
-            const postalCode = document.getElementById('postal-code').value;
-            const countryCode = document.getElementById('country-code').value;
+            // Disable input fields
+            document.getElementById('postal-code').disabled = true;
+            document.getElementById('country-code').disabled = true;
+
+            // Use the Geolocation API to get the device's location
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Use reverse geocoding to get postal code and country code
+                    const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
+                    fetch(apiUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const postalCode = data.address.postcode || '';
+                            const countryCode = data.address.country_code.toUpperCase() || '';
+
+                            // Populate input fields
+                            document.getElementById('postal-code').value = postalCode;
+                            document.getElementById('country-code').value = countryCode;
+
+                            // Fetch AQI data
+                            fetchAQIData(postalCode, countryCode);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+
+                            // Re-enable input fields
+                            document.getElementById('postal-code').disabled = false;
+                            document.getElementById('country-code').disabled = false;
+                        });
+                });
+            } else {
+                // Geolocation is not available, prompt user to enter data manually
+                alert("Geolocation is not available. Please enter Postal Code and Country Code manually.");
+                document.getElementById('postal-code').disabled = false;
+                document.getElementById('country-code').disabled = false;
+            }
+        }
+
+        // Function to fetch AQI data based on postal code and country code
+        function fetchAQIData(postalCode, countryCode) {
             const apiUrl = `https://api.ambeedata.com/latest/by-postal-code?postalCode=${postalCode}&countryCode=${countryCode}`;
 
             // Replace 'API_KEY' with your actual API key
@@ -177,8 +219,7 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', station.aqiInfo.category || '-',
-                            'AQI Status', getStatusHTML(station.AQI)
+                            'AQI Category', getStatusHTML(station.AQI),
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -299,12 +340,12 @@
             return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
 
+        // Function to convert decimal latitude/longitude to degrees, minutes, and seconds (DMS) format
         function convertDecimalToDMS(decimal) {
             const degrees = Math.floor(decimal);
-            const minutes = (decimal - degrees) * 60;
-            const seconds = (minutes - Math.floor(minutes)) * 60;
-
-            return `${degrees}° ${Math.floor(minutes)}' ${seconds.toFixed(2)}"`;
+            const minutes = Math.floor((decimal - degrees) * 60);
+            const seconds = ((decimal - degrees - (minutes / 60)) * 3600).toFixed(2);
+            return `${degrees}° ${minutes}' ${seconds}"`;
         }
     </script>
 </body>
