@@ -77,12 +77,12 @@
 
         /* Styling for the chart container */
         .chart-container {
-            display: none; /* Hidden by default */
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            display: none;
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
             padding: 20px;
-            max-width: 500px; /* Adjust the width as needed */
-            margin: 0 auto; /* Center the chart horizontally */
+            max-width: 500px;
+            margin: 0 auto; 
         }
     </style>
     <title>AQI and WQI Monitor</title>
@@ -110,13 +110,10 @@
         </div>
     </main>
     <script>
-        // Function to fetch data and populate the table based on the entered postal code and country code
         function fetchData() {
             const postalCode = document.getElementById('postal-code').value;
             const countryCode = document.getElementById('country-code').value;
             const apiUrl = `https://api.ambeedata.com/latest/by-postal-code?postalCode=${postalCode}&countryCode=${countryCode}`;
-
-            // Replace 'API_KEY' with your actual API key
             const apiKey = '2c30af85321ece6e47fc671496cd06829795f8cba7ca2886a530ac38bbc75d2a';
 
             // Set up headers with your API key
@@ -140,7 +137,6 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Get a reference to the table container and chart container
                     const tableContainer = document.getElementById('table-container');
                     const chartContainer = document.getElementById('chart-container');
                     tableContainer.style.display = 'none'; // Hide table by default
@@ -329,8 +325,6 @@
                 alert('Geolocation is not available in your browser.');
             }
         }
-
-        // Function to clear data when the user manually enters values
         function clearData() {
             document.getElementById('table-container').style.display = 'none';
             document.getElementById('chart-container').style.display = 'none';
