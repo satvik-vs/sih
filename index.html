@@ -36,7 +36,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: black; /* Change text color to white */
+            color: white; /* Change text color to white */
             font-weight: bold; /* Add bold style */
         }
 
@@ -95,10 +95,11 @@
         <div class="container">
             <div class="form-container">
                 <label for="postal-code">Enter Postal Code:</label>
-                <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code" disabled>
+                <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code" oninput="clearData()">
                 <label for="country-code">Enter Country Code (e.g., IN for India):</label>
-                <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code" disabled>
+                <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code" oninput="clearData()">
                 <button onclick="fetchData()">Fetch Data</button>
+                <button onclick="detectLocation()">Detect Location</button>
             </div>
             <div class="table-container" id="table-container">
                 <!-- The table will be rendered here -->
@@ -111,54 +112,8 @@
     <script>
         // Function to fetch data and populate the table based on the entered postal code and country code
         function fetchData() {
-            // Disable input fields
-            document.getElementById('postal-code').disabled = true;
-            document.getElementById('country-code').disabled = true;
-
-            // Use the Geolocation API to get the device's location
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    // Use reverse geocoding to get postal code and country code
-                    const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
-                    fetch(apiUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            const postalCode = data.address.postcode || '';
-                            const countryCode = data.address.country_code.toUpperCase() || '';
-
-                            // Populate input fields
-                            document.getElementById('postal-code').value = postalCode;
-                            document.getElementById('country-code').value = countryCode;
-
-                            // Fetch AQI data
-                            fetchAQIData(postalCode, countryCode);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-
-                            // Re-enable input fields
-                            document.getElementById('postal-code').disabled = false;
-                            document.getElementById('country-code').disabled = false;
-                        });
-                });
-            } else {
-                // Geolocation is not available, prompt user to enter data manually
-                alert("Geolocation is not available. Please enter Postal Code and Country Code manually.");
-                document.getElementById('postal-code').disabled = false;
-                document.getElementById('country-code').disabled = false;
-            }
-        }
-
-        // Function to fetch AQI data based on postal code and country code
-        function fetchAQIData(postalCode, countryCode) {
+            const postalCode = document.getElementById('postal-code').value;
+            const countryCode = document.getElementById('country-code').value;
             const apiUrl = `https://api.ambeedata.com/latest/by-postal-code?postalCode=${postalCode}&countryCode=${countryCode}`;
 
             // Replace 'API_KEY' with your actual API key
@@ -206,8 +161,8 @@
                             'City', station.city,
                             'Country Code', station.countryCode,
                             'Division', station.division,
-                            'Latitude', convertDecimalToDMS(station.lat),
-                            'Longitude', convertDecimalToDMS(station.lng),
+                            'Latitude', convertDecimalToDMS(station.lat), // Convert latitude to DMS
+                            'Longitude', convertDecimalToDMS(station.lng), // Convert longitude to DMS
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
@@ -219,7 +174,7 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', getStatusHTML(station.AQI),
+                            'AQI Category', getStatusHTML(station.AQI) // Display AQI category and status
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -308,14 +263,14 @@
             chartContainer.style.display = 'block';
         }
 
-        function getStatusHTML(aqi) {
+        function getStatusHTML(AQI) {
             let status = '';
             let color = '';
 
-            if (aqi <= 50) {
+            if (AQI >= 0 && AQI <= 50) {
                 status = 'Good';
                 color = 'green';
-            } else if (aqi <= 100) {
+            } else if (AQI > 50 && AQI <= 100) {
                 status = 'Satisfactory';
                 color = 'brown';
             } else {
@@ -340,11 +295,52 @@
             return `<span style="color: ${color}; font-weight: bold;">${status}</span><br>${solutions}`;
         }
 
-        // Function to convert decimal latitude/longitude to degrees, minutes, and seconds (DMS) format
+        // Function to detect location and populate postal code and country code inputs
+        function detectLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude.toFixed(6);
+                    const longitude = position.coords.longitude.toFixed(6);
+
+                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const country = data.countryIsoAlpha3;
+                            const postalCode = data.postcode;
+
+                            // Populate the inputs
+                            document.getElementById('postal-code').value = postalCode;
+                            document.getElementById('country-code').value = country;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            } else {
+                alert("Geolocation is not available in your browser. Please enter the data manually.");
+            }
+        }
+
+        // Function to clear data when inputs are manually edited
+        function clearData() {
+            const tableContainer = document.getElementById('table-container');
+            const chartContainer = document.getElementById('chart-container');
+            tableContainer.style.display = 'none'; // Hide table
+            chartContainer.style.display = 'none'; // Hide chart
+            tableContainer.innerHTML = ''; // Clear previous data
+            chartContainer.innerHTML = ''; // Clear previous chart
+        }
+
+        // Function to convert decimal coordinates to Degrees Minutes Seconds (DMS)
         function convertDecimalToDMS(decimal) {
             const degrees = Math.floor(decimal);
             const minutes = Math.floor((decimal - degrees) * 60);
-            const seconds = ((decimal - degrees - (minutes / 60)) * 3600).toFixed(2);
+            const seconds = ((decimal - degrees - minutes / 60) * 3600).toFixed(2);
             return `${degrees}° ${minutes}' ${seconds}"`;
         }
     </script>
