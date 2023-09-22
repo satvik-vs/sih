@@ -36,7 +36,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: black; /* Change text color to white */
+            color: white; /* Change text color to white */
             font-weight: bold; /* Add bold style */
         }
 
@@ -96,8 +96,12 @@
             <div class="form-container">
                 <label for="postal-code">Enter Postal Code:</label>
                 <input type="text" id="postal-code" name="postal-code" placeholder="Enter Postal Code">
-                <label for="country-code">Enter Country Code (e.g., IN for India):</label>
-                <input type="text" id="country-code" name="country-code" placeholder="Enter Country Code">
+                <label for="country-code">Select Country Code:</label>
+                <select id="country-code" name="country-code">
+                    <option value="IN">India (IN)</option>
+                    <option value="US">United States (US)</option>
+                    <!-- Add more options here -->
+                </select>
                 <button onclick="fetchData()">Fetch Data</button>
             </div>
             <div class="table-container" id="table-container">
@@ -165,6 +169,7 @@
                             'Place Name', station.placeName,
                             'Postal Code', station.postalCode,
                             'State', station.state,
+                            'Updated At', station.updatedAt,
                             'AQI', station.AQI,
                             'PM2.5', station['PM25'],
                             'CO', station.CO,
@@ -172,7 +177,8 @@
                             'NO2', station.NO2,
                             'PM10', station.PM10,
                             'SO2', station.SO2,
-                            'AQI Category', getStatusHTML(station.AQI)
+                            'AQI Category', station.aqiInfo.category || '-',
+                            'AQI Status', getStatusHTML(station.AQI)
                         ];
 
                         rowData.forEach((cellData, index) => {
@@ -265,10 +271,10 @@
             let status = '';
             let color = '';
 
-            if (aqi >= 0 && aqi <= 50) {
+            if (aqi <= 50) {
                 status = 'Good';
                 color = 'green';
-            } else if (aqi >= 51 && aqi <= 100) {
+            } else if (aqi <= 100) {
                 status = 'Satisfactory';
                 color = 'brown';
             } else {
@@ -281,9 +287,9 @@
                 solutions = `
                     <h3>Solutions for Abnormal AQI:</h3>
                     <ul>
-                        <li>Reduce Emissions from Vehicles</li>
-                        <li>Forest and Green Space Conservation</li>
-                        <li>Limit Outdoor Activities.</li>
+                        <li>Avoid outdoor activities.</li>
+                        <li>Use masks to reduce exposure to pollutants.</li>
+                        <li>Keep windows and doors closed to prevent indoor pollution.</li>
                         <li>Use air purifiers indoors.</li>
                         <li>Follow local advisories and alerts.</li>
                     </ul>
@@ -295,10 +301,10 @@
 
         function convertDecimalToDMS(decimal) {
             const degrees = Math.floor(decimal);
-            const minutes = Math.floor((decimal - degrees) * 60);
-            const seconds = ((decimal - degrees - (minutes / 60)) * 3600).toFixed(2);
+            const minutes = (decimal - degrees) * 60;
+            const seconds = (minutes - Math.floor(minutes)) * 60;
 
-            return `${degrees}° ${minutes}' ${seconds}"`;
+            return `${degrees}° ${Math.floor(minutes)}' ${seconds.toFixed(2)}"`;
         }
     </script>
 </body>
